@@ -1,4 +1,4 @@
-/* QG do Abner — ponte para rodar fora do Claude: login e banco no Supabase, IA via /api/claude, downloads no navegador.
+/* QG do Abner — ponte para rodar fora do Claude: login e banco no Supabase, IA via função do Supabase, downloads no navegador.
    Ele recria a mesma interface que o QG usava dentro do Claude (window.claude.use), então o resto do código não muda. */
 (function () {
   'use strict';
@@ -75,9 +75,9 @@
     const images = await Promise.all(files.slice(0, 5).map(shrink));
     let r;
     try {
-      r = await fetch(CFG.API_URL || '/api/claude', {
+      r = await fetch(CFG.API_URL || (CFG.SUPABASE_URL + '/functions/v1/claude'), {
         method: 'POST', signal: opts.signal,
-        headers: { 'content-type': 'application/json', authorization: 'Bearer ' + s.access_token },
+        headers: { 'content-type': 'application/json', authorization: 'Bearer ' + s.access_token, apikey: CFG.SUPABASE_ANON_KEY },
         body: JSON.stringify({ messages, images, tier: opts.modelTier || 'default', json: !!asJson })
       });
     } catch (e) {
