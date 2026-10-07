@@ -139,8 +139,21 @@
     try {
       if (mode === 'login') {
         if (!u || !p) return err('Preencha e-mail e senha.');
-        try { const user = await PF.signIn(u, p); PF.markAuthed(user); enter(); }
-        catch (x) { err('E-mail ou senha incorretos.'); $('#lgPass').value = ''; $('#lgPass').focus(); }
+        $('#loginBtn').textContent = 'Entrando…';
+        try {
+          const user = await Promise.race([PF.signIn(u, p), new Promise((_, rej) => setTimeout(() => rej({ message: 'timeout' }), 15000))]);
+          PF.markAuthed(user); enter();
+        } catch (x) {
+          const m = String((x && (x.message || x.error_description || x.msg)) || x || '');
+          console.error('Login falhou:', x);
+          if (/invalid login credentials/i.test(m)) err('E-mail ou senha incorretos. Confira se a conta foi criada em Authentication → Users.');
+          else if (/not confirmed/i.test(m)) err('Esse e-mail ainda não foi confirmado. No Supabase, crie o usuário marcando "Auto Confirm User".');
+          else if (/disabled/i.test(m)) err('O login por e-mail está desligado no Supabase (Authentication → Sign In / Providers → Email).');
+          else if (/timeout/i.test(m)) err('O Supabase não respondeu. Confira a SUPABASE_URL no config.js e se o projeto está ativo.');
+          else if (/fetch|network/i.test(m)) err('Não consegui falar com o Supabase. Confira a SUPABASE_URL e a chave no config.js.');
+          else err('Não entrou: ' + m);
+          $('#lgPass').value = ''; $('#lgPass').focus();
+        } finally { $('#loginBtn').textContent = 'Entrar'; }
       } else if (mode === 'forgot') {
         if (!u) return err('Digite seu e-mail.');
         await PF.sendReset(u); toast('Se esse e-mail tiver conta, o link chega em instantes.'); setMode('login');
@@ -151,7 +164,7 @@
         if (error) return err('Não consegui salvar a senha. Peça um novo link.');
         const s = await PF.session(); PF.markAuthed(s.user); toast('Senha nova salva!'); enter();
       }
-    } finally { $('#loginBtn').disabled = false; }
+    } catch (x) { console.error(x); err('Erro inesperado: ' + ((x && x.message) || x)); } finally { $('#loginBtn').disabled = false; }
   });
   $('#logout').onclick = async () => { await PF.signOut(); location.reload(); };
 

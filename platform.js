@@ -3,9 +3,8 @@
 (function () {
   'use strict';
   const CFG = window.QG_CONFIG || {};
-  if (!window.supabase || !CFG.SUPABASE_URL || !CFG.SUPABASE_ANON_KEY) {
-    console.error('Configure o arquivo config.js com SUPABASE_URL e SUPABASE_ANON_KEY.');
-  }
+  if (!window.supabase) { alert('A biblioteca do Supabase não carregou. Recarregue a página.'); }
+  if (!CFG.SUPABASE_URL || !CFG.SUPABASE_ANON_KEY) { alert('O arquivo config.js não foi encontrado ou está incompleto.'); }
   const sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY, { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } });
 
   let resolveAuthed; const authed = new Promise(r => { resolveAuthed = r; });
