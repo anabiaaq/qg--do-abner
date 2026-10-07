@@ -161,21 +161,19 @@
     },
     async limits() { const s = await this.get(); if (!s) return null; try { return await s.limits(); } catch (e) { return null; } },
     msg(e) {
-      const c = e && e.code;
+      const c = e && e.code, det = e && e.message ? ' (' + e.message + ')' : '';
       return ({
-        unavailable: 'A IA não está disponível nesta visualização. Abra o QG pelo Claude para conversar com os agentes.',
-        not_granted: 'Os agentes precisam da sua permissão para usar o Claude. Recarregue a página e toque em Permitir.',
-        sampling_disabled: 'O Claude não está disponível nesta conta.',
-        rate_limited: 'Muitos pedidos seguidos. Espere um pouquinho e tente de novo.',
-        session_expired: 'Sua sessão do Claude expirou. Entre de novo e volte aqui.',
+        unavailable: 'A IA não carregou. Saia e entre de novo no QG.',
+        not_granted: 'Sua conta não tem permissão para usar a IA. Confira o secret ALLOWED_EMAILS no Supabase.' + det,
+        session_expired: 'A função da IA recusou o acesso. Desligue a verificação de JWT da função "claude" no Supabase, ou saia e entre de novo.' + det,
+        rate_limited: 'Muitos pedidos seguidos ou limite da conta Anthropic atingido. Espere um pouco.' + det,
         refused: 'O agente não pôde responder a esse pedido. Tente reformular.',
         invalid_json: 'A resposta veio bagunçada. Toque em tentar de novo.',
         image_rejected: 'Essa imagem não foi aceita. Tente uma foto JPG ou PNG mais nítida.',
-        images_unavailable: 'Envio de fotos indisponível nesta visualização. Lance os gastos manualmente.',
         prompt_too_large: 'O pedido ficou grande demais. Tente com menos texto.',
         empty_completion: 'O agente ficou sem palavras. Tente de outro jeito.',
         cancelled: 'Pedido interrompido.'
-      })[c] || 'Algo falhou na conexão com o agente. Tente de novo em instantes.';
+      })[c] || ('A IA não respondeu' + (det || '.') );
     }
   };
   Q.AI = AI;
